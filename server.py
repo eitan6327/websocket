@@ -23,11 +23,15 @@ def read_buffer(ser):
 
 
 def read_serial(ser):
-	print('***********************************')
-	sleep(0.02)
 	lines = b''
-	while ser.in_waiting:
-		lines = lines + ser.readline()
+	while True:
+		while ser.in_waiting:
+			line = ser.readline()
+			lines = lines + line
+			ser.write(line.encode('utf-8'))
+		sleep(0.01)
+		if ser.in_waiting == False:
+			break
 	return lines
 
 
@@ -40,14 +44,14 @@ async def hello(websocket, path):
 
     s_msg = 'HF92B0201;0;02;00\n'
 
-    ser.write(msg.encode('utf-8'))
+    #ser.write(msg.encode('utf-8'))
 
-    val = read_buffer(ser)
+    val = read_serial(ser)
 
 
     print(val.decode('utf-8'))
 
-    rx_msg = f"RX MSG: {msg}!"
+    rx_msg = f"RX MSG: {msg}"
 
     await websocket.send(val.decode('utf-8'))
     
