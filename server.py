@@ -28,7 +28,8 @@ def read_serial(ser):
 		while ser.in_waiting:
 			line = ser.readline()
 			lines = lines + line
-			ser.write(line.encode('utf-8'))
+			#print(line)
+			#ser.write(line.encode('utf-8'))
 		sleep(0.01)
 		if ser.in_waiting == False:
 			break
@@ -52,11 +53,23 @@ async def hello(websocket, path):
     print(val.decode('utf-8'))
 
     rx_msg = f"RX MSG: {msg}"
-
-    await websocket.send(val.decode('utf-8'))
-    
+ 
+    # await websocket.send(val.decode('utf-8'))
+    await websocket.send(rx_msg)
     print(f"> {rx_msg}")
 
+async def echo(websocket, path):
+    async for message in websocket:
+        #await websocket.send(message[::-1])
+        print('From MSD View: ', message)
+        ser.write(message.encode('utf-8'))
+
+        val = read_serial(ser)
+        print(val.decode('utf-8'))
+
+        rx_msg = f"RX MSG: {val}"
+        #print(f"> {rx_msg}")
+        await websocket.send(val.decode('utf-8'))
 
 
 def thread_function(server_loop):
@@ -115,11 +128,16 @@ if __name__ == "__main__":
 	x = threading.Thread(target=thread_function, args=(1,))
 	x.start()
 
+	loop = asyncio.get_event_loop()
+	loop.run_until_complete(websockets.serve(echo, 'localhost', 8765))
+	loop.run_forever()
 
 
+	'''
 
-	start_server = websockets.serve(hello, "localhost", 8764)
+	start_server = websockets.serve(hello, "localhost", 80)
 
 	asyncio.get_event_loop().run_until_complete(start_server)
 	asyncio.get_event_loop().run_forever()
+	'''
 	
