@@ -4,12 +4,14 @@
 import asyncio
 import websockets
 import threading
+import socket
 
 import serial
 import serial.tools.list_ports as port_list
 from time import sleep
 from time import time
 
+port = '8765'
 
 def read_buffer(ser):
         temp = 1
@@ -43,10 +45,6 @@ async def hello(websocket, path):
 
     print(msg)
 
-    s_msg = 'HF92B0201;0;02;00\n'
-
-    #ser.write(msg.encode('utf-8'))
-
     val = read_serial(ser)
 
 
@@ -61,7 +59,7 @@ async def hello(websocket, path):
 async def echo(websocket, path):
     async for message in websocket:
         #await websocket.send(message[::-1])
-        print('From MSD View: ', message)
+        print('From Client: ', message)
         ser.write(message.encode('utf-8'))
 
         val = read_serial(ser)
@@ -71,14 +69,6 @@ async def echo(websocket, path):
         #print(f"> {rx_msg}")
         await websocket.send(val.decode('utf-8'))
 
-
-def thread_function(server_loop):
-	i = 0
-	while i < 10:
-		i += 1
-		print('Thread', i)
-		sleep(0.1)
-		
 
 
 
@@ -125,19 +115,16 @@ if __name__ == "__main__":
 		                print(f'trying {tries}')
 		                sleep(.05)
 	
-	x = threading.Thread(target=thread_function, args=(1,))
-	x.start()
+
+
+	hostname = socket.gethostname()
+	local_ip = socket.gethostbyname(hostname)
+	print('Point Client to:', local_ip + ':' + port)
+
 
 	loop = asyncio.get_event_loop()
-	loop.run_until_complete(websockets.serve(echo, 'localhost', 8765))
+	loop.run_until_complete(websockets.serve(echo, local_ip, port))
 	loop.run_forever()
 
 
-	'''
-
-	start_server = websockets.serve(hello, "localhost", 80)
-
-	asyncio.get_event_loop().run_until_complete(start_server)
-	asyncio.get_event_loop().run_forever()
-	'''
 	
