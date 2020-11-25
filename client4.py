@@ -14,7 +14,10 @@ import pickle
 class MSG:
 	pass
 
-
+PROD_2APP = MSG()
+PROD_2APP.data = 'HF92B0301;0;01;00\n'
+PROD_2APP.time = 2
+PROD_2APP.count = 1
 
 PROD_ID = MSG()
 PROD_ID.data = 'HF92B0101;0;01;00\n'
@@ -35,10 +38,15 @@ PROD_LIST.data = 'HF92B0101;0;04;00\n'
 # message delay
 PROD_LIST.time = 2
 # total number if messages to send
-PROD_LIST.count = 5
+PROD_LIST.count = 0
+
+PROD_MON = MSG()
+PROD_MON.data = 'HF92B0201;0;01;00\n'
+PROD_MON.time = 2
+PROD_MON.count = 5
 
 # list of messages
-msg_list = (PROD_ID, PROD_GUI, PROD_LIST)
+msg_list = (PROD_2APP, PROD_ID, PROD_GUI, PROD_LIST, PROD_MON)
 
 
 def getTime():
@@ -62,7 +70,7 @@ async def msg_send(msg, websocket):
             await asyncio.sleep(msg.time)
 
 async def msg_rec(websocket):
-    while True:
+    while websocket.connection_open:
         async for message in websocket:
             # Print the time stamp for received message
             print('RX time: ' + getTime())
@@ -74,22 +82,19 @@ async def main(uri):
     #start a WebSocket connection
     async with websockets.connect(uri) as websocket:
         # send all the messages
-        req0 = asyncio.create_task(
-            msg_send(PROD_ID, websocket))
+        req = []
 
-        req1 = asyncio.create_task(
-            msg_send(PROD_LIST, websocket))
+        for item in msg_list:
+            req.append(asyncio.create_task(
+                msg_send(item, websocket)))
 
-        req2 = asyncio.create_task(
-            msg_send(PROD_GUI,websocket)
-        )
         # Receive messages
         rec_task = asyncio.create_task(
             msg_rec(websocket))
         # wait fot alt the transmits to complete
-        await req0
-        await req1
-        await req2
+        for item in req:
+            await item
+
         rec_task
 
 hostname = socket.gethostname()
