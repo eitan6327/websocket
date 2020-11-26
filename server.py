@@ -10,19 +10,10 @@ import serial
 import serial.tools.list_ports as port_list
 from time import sleep
 from time import time
+import logging
+from det_com import detect_com_ports as com
 
 port = '8765'
-
-def read_buffer(ser):
-        temp = 1
-        lines2 = b''
-        lines = read_serial(ser)
-        while len(lines) != 0:
-        	lines2 = lines2 + lines
-        	lines = read_serial(ser)
-        return lines2
-
-
 
 def read_serial(ser):
 	lines = b''
@@ -38,84 +29,34 @@ def read_serial(ser):
 	return lines
 
 
-async def hello(websocket, path):
-    msg = await websocket.recv()
-
-    msg = msg
-
-    print(msg)
-
-    val = read_serial(ser)
-
-
-    print(val.decode('utf-8'))
-
-    rx_msg = f"RX MSG: {msg}"
- 
-    # await websocket.send(val.decode('utf-8'))
-    await websocket.send(rx_msg)
-    print(f"> {rx_msg}")
-
 async def echo(websocket, path):
-    async for message in websocket:
-        #await websocket.send(message[::-1])
-        print('From Client: ', message)
-        ser.write(message.encode('utf-8'))
+	print(dir(websocket))
+	async for message in websocket:
+		#await websocket.send(message[::-1])
+		log(f'From Client: {websocket.remote_address[0]}')
+		print(message)
+		ser.write(message.encode('utf-8'))
 
-        val = read_serial(ser)
-        print(val.decode('utf-8'))
+		val = read_serial(ser)
+		if(val != ''):
+			log('Serial Response:')
+			print(val.decode('utf-8'))
 
-        rx_msg = f"RX MSG: {val}"
-        #print(f"> {rx_msg}")
-        await websocket.send(val.decode('utf-8'))
-
-
-
+			try:
+				await websocket.send(val.decode('utf-8'))
+			except:
+				print('rx error')
 
 
 if __name__ == "__main__":
+	format = "%(asctime)s.%(msecs)03d: %(message)s"
+	logging.basicConfig(format = format, level = logging.INFO,
+	datefmt = "%H:%M:%S")
 
-	p_open = False
-	tries = 1
-
-	print('starting...')
-
-	while p_open == False:
-	        start = time()
-	        pp = port_list.comports()
-	        
-	        elapse = time() - start
-	        print(elapse)
-	        ports = list(pp)
-	        p_list = []
-	        com_select = ''
-	        for p in ports:
-	                p_list.append(p)                
-	                print(p)
-	                #print((str(p).split(' ')[2]) == 'USB')
-	                #find the highest value com port
-	                if ((str(p).split(' ')[2]) == 'USB'):
-	                        com_select = str(p).split(' ')[0]
-	                        print(f'com selected: {com_select}')
-
-	        
-	        if com_select == '' :
-	                print('Exiting: No COM Port Found')
-	                quit()
-
-	        # print (port_list)
-	        com = com_select
-	        while p_open == False:
-		        try:
-		                ser = serial.Serial(com, timeout=1)
-		                print(f'Connected to: {ser.name}')
-		                p_open = True
-		        except:
-		                tries = tries + 1
-		                print(f'trying {tries}')
-		                sleep(.05)
-	
-
+	log = logging.info
+	log("Main : starting")
+	# detect the USB com port
+	ser = com()
 
 	hostname = socket.gethostname()
 	local_ip = socket.gethostbyname(hostname)

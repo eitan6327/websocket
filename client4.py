@@ -9,6 +9,7 @@ import time
 from datetime import datetime
 import socket
 import pickle
+import logging
 
 # Create a message class
 class MSG:
@@ -43,27 +44,15 @@ PROD_LIST.count = 0
 PROD_MON = MSG()
 PROD_MON.data = 'HF92B0201;0;01;00\n'
 PROD_MON.time = 2
-PROD_MON.count = 5
+PROD_MON.count = 2
 
 # list of messages
 msg_list = (PROD_2APP, PROD_ID, PROD_GUI, PROD_LIST, PROD_MON)
 
-
-def getTime():
-    tim = (f"RX time: {time.strftime('%X')}.")
-    a = (time.time())
-    a = str(int((a - int(a)) * 1000))
-    tim = (f"{time.strftime('%X')}." + a)
-    return(tim)
- 
-    
-
 async def msg_send(msg, websocket):
     e = msg.count
     while e:
-        # Print the time stamp for sent message
-        print('TX time: ' + getTime())
-        print('    ' + msg.data)
+        log(f'Request to server:\n{msg.data}')
         await websocket.send(msg.data)
         e -= 1 
         if e:
@@ -72,9 +61,7 @@ async def msg_send(msg, websocket):
 async def msg_rec(websocket):
     while websocket.connection_open:
         async for message in websocket:
-            # Print the time stamp for received message
-            print('RX time: ' + getTime())
-            print(message)
+            log(f'Response from server:\n{message}')
             # time interval for checking the receive buffer
             await asyncio.sleep(0.01)
 
@@ -97,59 +84,73 @@ async def main(uri):
 
         rec_task
 
-hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
-print(local_ip)
+def get_server_ip_port():
+    ''' 
+    This routine reads the last ip:port from file and prompts the user to update it 
+    The enter key prompt the function to use the old ip:port
+    '''
+    existing_ip = ''
+    try:
+        file = open("ip.pkl", "rb")
+        existing_ip = pickle.load(file)
+        #file.close()
+        print('existing ip: ' + existing_ip)
+    except:
+        print('no valid file')
+
+    new_ip_read = input('enter server "ip:port" or <enter> to accept ' + str(existing_ip) + ': ')
+    new_ip_read = new_ip_read.replace(' ','')
+    if new_ip_read == '':
+        new_ip_read = existing_ip
+    ip_format_valid = True
+    new_ip = new_ip_read.split(':')
+    new_ip[0] = new_ip[0].split('.')
+    if len(new_ip) !=2 or len(new_ip[0]) != 4:
+        ip_format_valid = False
+        
+    elif new_ip[1].isnumeric() == False:
+        ip_format_valid = False
+    elif int(new_ip[1]) > 65535:
+        ip_format_valid = False
+
+    else:
+        for item in new_ip[0]:
+            if item.isnumeric() == False:
+                ip_format_valid = False
+                break
+            if  int(item) > 255:
+                ip_format_valid = False
+                break
+        
+    if ip_format_valid == False:
+        print('Bad ip:port format......Exiting')
+        exit()    
+    else:
+        print('good format')
+
+    if new_ip_read == '':
+        new_ip_read = existing_ip
+    else:
+        file = open('ip.pkl', 'wb')
+        pickle.dump(new_ip_read, file)
+        file.close()
+    return new_ip_read
 
 
-existing_ip = ''
-try:
-    file = open("ip.pkl", "rb")
-    existing_ip = pickle.load(file)
-    #file.close()
-    print('existing ip: ' + existing_ip)
-except:
-    print('no valid file')
+if __name__ == "__main__":
+    format = "%(asctime)s.%(msecs)03d: %(message)s"
+    logging.basicConfig(format = format, level = logging.INFO,
+    datefmt = "%H:%M:%S")
 
-new_ip_read = input('enter server "ip:port" or <enter> to accept ' + str(existing_ip) + ': ')
-new_ip_read = new_ip_read.replace(' ','')
-if new_ip_read == '':
-    new_ip_read = existing_ip
-ip_format_valid = True
-new_ip = new_ip_read.split(':')
-new_ip[0] = new_ip[0].split('.')
-if len(new_ip) !=2 or len(new_ip[0]) != 4:
-    ip_format_valid = False
-    
-elif new_ip[1].isnumeric() == False:
-    ip_format_valid = False
-elif int(new_ip[1]) > 65535:
-    ip_format_valid = False
+    log = logging.info
+    log("Main : starting")
 
-else:
-    for item in new_ip[0]:
-        if item.isnumeric() == False:
-            ip_format_valid = False
-            break
-        if  int(item) > 255:
-            ip_format_valid = False
-            break
-    
-if ip_format_valid == False:
-    print('Bad ip:port format......Exiting')
-    exit()    
-else:
-    print('good format')
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    print('local ip: ', local_ip)
 
-if new_ip_read == '':
-    new_ip_read = existing_ip
-else:
-    file = open('ip.pkl', 'wb')
-    pickle.dump(new_ip_read, file)
-    file.close()
+    serv_ip_port = get_server_ip_port()
 
-print(new_ip_read)
-print('ws://' + new_ip_read)
+    print('ws://' + serv_ip_port)
 
-
-asyncio.get_event_loop().run_until_complete(main('ws://' + new_ip_read))
+    asyncio.get_event_loop().run_until_complete(main('ws://' + serv_ip_port))
