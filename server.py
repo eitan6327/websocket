@@ -23,25 +23,30 @@ def read_serial(ser):
 			lines = lines + line
 			#print(line)
 			#ser.write(line.encode('utf-8'))
-		sleep(0.01)
+		# sleep(0.01)
 		if ser.in_waiting == False:
 			break
 	return lines
 
 
 async def echo(websocket, path):
-	print(dir(websocket))
 	async for message in websocket:
 		#await websocket.send(message[::-1])
 		log(f'From Client: {websocket.remote_address[0]}')
 		print(message)
+		vala = read_serial(ser)
+		valb = b''
+		while (vala != b''):
+			valb += vala
+			sleep(0.003)
+
+			log(f'Serial Response P:\n{vala.decode("utf-8")}')
+			vala = read_serial(ser)
 		ser.write(message.encode('utf-8'))
-
 		val = read_serial(ser)
-		if(val != ''):
-			log('Serial Response:')
-			print(val.decode('utf-8'))
-
+		if (valb + val != b''):
+			log(f'Serial Response:\n{val.decode("utf-8")}')
+			val = valb + val
 			try:
 				await websocket.send(val.decode('utf-8'))
 			except:
