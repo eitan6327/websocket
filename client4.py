@@ -32,12 +32,11 @@ PROD_ID.count = 0
 PROD_GUI = MSG()
 PROD_GUI.data = 'HF92B0101;0;02;00\n'
 # message delay
-PROD_GUI.delay = 0
+PROD_GUI.delay = 0.5
 # time between messages
-
 PROD_GUI.time = 10 
 # total number if messages to send
-PROD_GUI.count = 0
+PROD_GUI.count = 1
 
 PROD_LIST = MSG()
 PROD_LIST.data = 'HF92B0101;0;04;00\n'
@@ -48,8 +47,9 @@ PROD_LIST.count = 0
 
 PROD_MON = MSG()
 PROD_MON.data = 'HF92B0201;0;01;00\n'
-PROD_MON.time = 0.1
-PROD_MON.count = 4
+PROD_MON.time = .2
+PROD_MON.delay = .1
+PROD_MON.count = 10
 
 # list of messages
 msg_list = (PROD_2APP, PROD_ID, PROD_GUI, PROD_LIST, PROD_MON)
@@ -93,6 +93,8 @@ async def main(uri):
             await item
         # End the program if there is nothing to send
         rec_task
+        await asyncio.sleep(1)
+
 
 def get_server_ip_port():
     ''' 

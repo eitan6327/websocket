@@ -18,12 +18,12 @@ port = '8765'
 def read_serial(ser):
 	lines = b''
 	
-	while True:
-		while ser.in_waiting:
-			line = ser.readline()
-			lines = lines + line
-		if ser.in_waiting == False:
-			break
+	#while True:
+	while ser.in_waiting:
+		line = ser.readline()
+		lines = lines + line
+	#if ser.in_waiting == False:
+	#	break
 	return lines
 
 
@@ -40,9 +40,8 @@ async def echo(websocket, path):
 			log(f'Serial Response P:\n{vala.decode("utf-8")}')
 			vala = read_serial(ser)
 		ser.write(message.encode('utf-8'))
-		sleep(0.01)
 		val = read_serial(ser)
-		if (valb + val != b''):
+		if True: #(valb + val != b''):
 			log(f'Serial Response:\n{val.decode("utf-8")}')
 			val = valb + val
 			try:
