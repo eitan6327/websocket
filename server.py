@@ -17,13 +17,11 @@ port = '8765'
 
 def read_serial(ser):
 	lines = b''
+	
 	while True:
 		while ser.in_waiting:
 			line = ser.readline()
 			lines = lines + line
-			#print(line)
-			#ser.write(line.encode('utf-8'))
-		# sleep(0.01)
 		if ser.in_waiting == False:
 			break
 	return lines
@@ -31,7 +29,6 @@ def read_serial(ser):
 
 async def echo(websocket, path):
 	async for message in websocket:
-		#await websocket.send(message[::-1])
 		log(f'From Client: {websocket.remote_address[0]}')
 		print(message)
 		vala = read_serial(ser)
@@ -43,6 +40,7 @@ async def echo(websocket, path):
 			log(f'Serial Response P:\n{vala.decode("utf-8")}')
 			vala = read_serial(ser)
 		ser.write(message.encode('utf-8'))
+		sleep(0.01)
 		val = read_serial(ser)
 		if (valb + val != b''):
 			log(f'Serial Response:\n{val.decode("utf-8")}')
@@ -50,7 +48,8 @@ async def echo(websocket, path):
 			try:
 				await websocket.send(val.decode('utf-8'))
 			except:
-				print('rx error')
+				log(f'ws send error {val.decode("utf-8")}')
+				break
 
 
 if __name__ == "__main__":
@@ -62,7 +61,6 @@ if __name__ == "__main__":
 	log("Main : starting")
 	# detect the USB com port
 	ser = com()
-
 	hostname = socket.gethostname()
 	local_ip = socket.gethostbyname(hostname)
 	print('Point Client to:', local_ip + ':' + port)
