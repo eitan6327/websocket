@@ -164,5 +164,5 @@ if __name__ == "__main__":
     serv_ip_port = get_server_ip_port()
 
     print('ws://' + serv_ip_port)
-
-    asyncio.get_event_loop().run_until_complete(main('ws://' + serv_ip_port))
+    for i in range(3):
+        asyncio.get_event_loop().run_until_complete(main('ws://' + serv_ip_port))

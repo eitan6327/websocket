@@ -32,7 +32,7 @@ def detect_com_ports():
 
 			while p_open == False:
 			    try:
-			            ser = serial.Serial(com, timeout=1, baudrate=921600)
+			            ser = serial.Serial(com, timeout=1, baudrate=921600, rtscts = True)
 			            print(f'Connected to: {ser.name}')
 			            ser.reset_input_buffer()
 			            p_open = True
