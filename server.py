@@ -27,7 +27,6 @@ def read_serial(ser):
 	return lines
 
 async def do_st(websocket):
-	
 	send_valid = True
 	while send_valid:
 
