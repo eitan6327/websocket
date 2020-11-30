@@ -41,18 +41,31 @@ PROD_GUI.count = 1
 PROD_LIST = MSG()
 PROD_LIST.data = 'HF92B0101;0;04;00\n'
 # message delay
-PROD_LIST.time = 2
+PROD_LIST.time = 0.4
 # total number if messages to send
-PROD_LIST.count = 0
+PROD_LIST.count = 3
 
 PROD_MON = MSG()
 PROD_MON.data = 'HF92B0201;0;01;00\n'
 PROD_MON.time = .2
 PROD_MON.delay = .1
-PROD_MON.count = 10
+PROD_MON.count = 2
+
+PROD_MOD_MON = MSG()
+PROD_MOD_MON.data = 'HF9800201;0;01;00\n'
+PROD_MOD_MON.time = .2
+PROD_MOD_MON.delay = .1
+PROD_MOD_MON.count = 2
+
+PROD_MOD_GUI = MSG()
+PROD_MOD_GUI.data = 'HF9800101;0;02;00\n'
+PROD_MOD_GUI.time = .2
+PROD_MOD_GUI.delay = .2
+PROD_MOD_GUI.count = 1
+
 
 # list of messages
-msg_list = (PROD_2APP, PROD_ID, PROD_GUI, PROD_LIST, PROD_MON)
+msg_list = (PROD_2APP, PROD_ID, PROD_GUI, PROD_LIST, PROD_MON, PROD_MOD_MON, PROD_MOD_GUI)
 
 async def msg_send(msg, websocket):
     e = msg.count
