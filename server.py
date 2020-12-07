@@ -87,6 +87,7 @@ if __name__ == "__main__":
 		ser_list = fp.getValidSerials()
 		sleep(1)
 		print('ser rx', ser_list)
+	ser = ser_list[0]
 	#IdentifyPortThread
 
 	hostname = socket.gethostname()
