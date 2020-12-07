@@ -38,6 +38,8 @@ class IdentifyPortThread(threading.Thread):
 		self.existing_ports = set()
 		self.inuse_ports = set()
 		self.valid_ports = set()
+		self.gser = []
+
 
 	def run(self):
 		ser = {}
@@ -51,21 +53,20 @@ class IdentifyPortThread(threading.Thread):
 
 			for port in ports_to_remove:
 				self.valid_ports.remove(port)
-				log(f'removed  valid port: {port}')
+				print(f'removed  valid port: {port}')
 	
 			open_ports = set()
 			for port in ports:
 				if port not in self.valid_ports:
 					try:
-
 						ser[port] = serial.Serial(port, timeout=1, baudrate=921600, rtscts = True)
 						open_ports.add(port)
 						if port in self.inuse_ports:
 							self.inuse_ports.remove(port)
-						# log(f'added open port: {port}')
+						print(f'added open port: {port}')
 					except:
 						if port not in self.inuse_ports:
-							log(f'port {port} is in use')
+							print(f'port {port} is in use')
 						self.inuse_ports.add(port)
 						# close the port since the port may have been already assigned
 						try:
@@ -81,20 +82,32 @@ class IdentifyPortThread(threading.Thread):
 					ser[port].write('HF92B0101;0;01;00\n'.encode("utf-8"))
 					time.sleep(0.01)
 					val = (ser[port].readline())
-					log(f'{port} RX:\n{val.decode("utf-8")}')
+					print(f'{port} RX:\n{val.decode("utf-8")}')
 					if self.validateMessage(val) == 'OK':
 						self.valid_ports.add(port)
+
 					else:
-						log('bad data')
+						print('bad data')
 					
 				except:
+					print('no validation')
 					pass
+			for port in self.valid_ports:
+				if (ser[port] not in self.gser):
+					self.gser.append(ser[port])
+
+			for ser[port] in self.gser:
+				if port not in self.valid_ports:
+					self.gser.remove = ser[port]
 
 
 			time.sleep(1)
 
 	def getAvailablePorts(self):
 		return self.valid_ports
+
+	def getValidSerials(self):
+		return self.gser
 
 	def validateMessage(self, msg):
 		if len (msg) < 9:
@@ -128,9 +141,14 @@ class InitializePorts:
 		# This Thread identify the ability to write and read from the ports and creates a set
 		self.s = IdentifyPortThread(args=self.t,)
 		self.s.start()
+		return self.s
+	
 
 	def AvailablePorts(self):
 		return self. s.getAvailablePorts()
+
+	def ValidatedPorts(self):
+		return self.s.getValidSerials()
 
 	
 
@@ -155,6 +173,7 @@ if __name__ == '__main__':
 				ports_to_print.add(i)
 
 			print(f'Available Ports: {ports_to_print}')
+
 
 			
 		
