@@ -7,11 +7,12 @@ import threading
 import socket
 
 import serial
-import serial.tools.list_ports as port_list
+# import serial.tools.list_ports as port_list
 from time import sleep
 from time import time
 import logging
-from det_com import detect_com_ports as com
+# from det_com import detect_com_ports as com
+from ports_open import InitializePorts, IdentifyPortThread
 
 port = '8765'
 
@@ -78,7 +79,17 @@ if __name__ == "__main__":
 	log = logging.info
 	log("Main : starting")
 	# detect the USB com port
-	ser = com()
+	#ser = com()
+	fp = InitializePorts().run()
+	ser_list = []
+
+	while len(ser_list) == 0:
+		ser_list = fp.getValidSerials()
+		sleep(1)
+		print('ser rx', ser_list)
+	ser = ser_list[0]
+	#IdentifyPortThread
+
 	hostname = socket.gethostname()
 	local_ip = socket.gethostbyname(hostname)
 	print('Point Client to:', local_ip + ':' + port)
