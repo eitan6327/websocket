@@ -44,10 +44,17 @@ async def do_st(websocket):
 		await asyncio.sleep(0.01)
 	print('Done Reading')
 		
+def GetPortFunction():
+	print(ser)
+
+	return ser
 
 
 async def main(websocket, path):
-	test = asyncio.create_task(do_st(websocket))
+	pl = GetPortFunction()
+	print('hello ws:\n', ser)
+	
+	read_serial = asyncio.create_task(do_st(websocket))
 	try:
 		async for message in websocket:
 			log(f'From Client: {websocket.remote_address[0]}\n{message}')
@@ -65,7 +72,7 @@ async def main(websocket, path):
 			except Exception as e:
 				log(f"error serial write {message.encode('utf-8')}")
 
-		await test
+		await read_serial
 	except:
 		print('Done with Websocket')
 		pass
@@ -86,7 +93,7 @@ if __name__ == "__main__":
 	while len(ser_list) == 0:
 		ser_list = fp.getValidSerials()
 		sleep(1)
-		print('ser rx', ser_list)
+		# print('ser rx', ser_list)
 	ser = ser_list[0]
 	#IdentifyPortThread
 
