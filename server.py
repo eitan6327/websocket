@@ -28,10 +28,17 @@ def read_serial(ser):
 	return lines
 
 async def do_st(websocket):
+	global ser_valid
 	send_valid = True
 	while send_valid:
-
-		val = read_serial(ser)
+		val = b''
+		if send_valid:
+			if ser_valid:
+				try:
+					val = read_serial(ser)
+				except Exception as e:
+					log('error serial read')
+					ser_valid = False
 		if val != b'':
 			global last_read_time
 			last_read_time = time()
@@ -42,36 +49,61 @@ async def do_st(websocket):
 				send_valid = False
 
 		await asyncio.sleep(0.01)
-	print('Done Reading')
+	print('Done with websocket')
 		
-def GetPortFunction():
-	print(ser)
+async def find_serial():
+	while True:
+		global ser_valid
+		global ser
+		if ser_valid == False:
+			ser_list = []
+			ser_list = fp.getValidSerials()
 
-	return ser
+			if len(ser_list):
+				ser = ser_list[0]
+				ser_valid = True
+				print('serial connected')
+		await asyncio.sleep(0.5)
 
+
+# async def setup_serial():
+# 	await find_serial
 
 async def main(websocket, path):
-	pl = GetPortFunction()
-	print('hello ws:\n', ser)
-	
+	'''
+	ser_list = fp.getValidSerials()
+	if len(ser_list):
+		ser = ser_list[0]
+		ser_valid = True
+	print('lenth of serial', len(ser_list))
+	'''
+	global ser_valid
+	ser_valid = False
+	validate_port = asyncio.create_task(find_serial())
 	read_serial = asyncio.create_task(do_st(websocket))
+	
 	try:
 		async for message in websocket:
 			log(f'From Client: {websocket.remote_address[0]}\n{message}')
 		
 			try:
+				global ser
 				global last_read_time
-				log(f'last_read_time: {last_read_time}')
+				# log(f'last_read_time: {last_read_time}')
 				delta = time() - last_read_time
 				#TODO: Figure out why we need a delay here
 				while time() - last_read_time < 0.01:
-					log('start delay')
+					# log('start delay')
 					await asyncio.sleep(.005)
-				log(f'end delay delta: {time() - last_read_time}')
+				# log(f'end delay delta: {time() - last_read_time}')
 				ser.write(message.encode('utf-8'))
 			except Exception as e:
-				log(f"error serial write {message.encode('utf-8')}")
+				if ser_valid == True:
+					log(f"error serial write {message.encode('utf-8')}")
+					ser_valid = False
 
+		# await validate_port
+		await validate_port
 		await read_serial
 	except:
 		print('Done with Websocket')
@@ -88,13 +120,14 @@ if __name__ == "__main__":
 	# detect the USB com port
 	#ser = com()
 	fp = InitializePorts().run()
-	ser_list = []
+	# ser_list = []
+	global ser_valid
+	ser_valid = False
 
-	while len(ser_list) == 0:
-		ser_list = fp.getValidSerials()
-		sleep(1)
-		# print('ser rx', ser_list)
-	ser = ser_list[0]
+
+	# find_serial()
+
+	
 	#IdentifyPortThread
 
 	hostname = socket.gethostname()

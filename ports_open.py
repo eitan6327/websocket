@@ -98,7 +98,7 @@ class IdentifyPortThread(threading.Thread):
 
 			for ser[port] in self.gser:
 				if port not in self.valid_ports:
-					self.gser.remove = ser[port]
+					self.gser.remove(ser[port])
 
 
 			time.sleep(1)

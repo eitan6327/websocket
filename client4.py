@@ -27,7 +27,7 @@ PROD_ID.delay = .1
 # time between messages
 PROD_ID.time = 0.5
 # total number if messages to send
-PROD_ID.count = 3
+PROD_ID.count = 1
 
 PROD_GUI = MSG()
 PROD_GUI.data = 'HF92B0101;0;02;00\n'
@@ -36,14 +36,14 @@ PROD_GUI.delay = 0.5
 # time between messages
 PROD_GUI.time = 10 
 # total number if messages to send
-PROD_GUI.count = 0
+PROD_GUI.count = 1
 
 PROD_LIST = MSG()
 PROD_LIST.data = 'HF92B0101;0;04;00\n'
 # message delay
 PROD_LIST.time = 0.4
 # total number if messages to send
-PROD_LIST.count = 0
+PROD_LIST.count = 2
 
 PROD_MON = MSG()
 PROD_MON.data = 'HF92B0201;0;01;00\n'
@@ -106,7 +106,8 @@ async def main(uri):
             await item
         # End the program if there is nothing to send
         rec_task
-        await asyncio.sleep(5)
+        await asyncio.sleep(2)
+        await websocket.close()
 
 
 def get_server_ip_port():
