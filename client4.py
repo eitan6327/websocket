@@ -18,7 +18,7 @@ class MSG:
 PROD_2APP = MSG()
 PROD_2APP.data = 'HF92B0301;0;01;00\n'
 PROD_2APP.time = 2
-PROD_2APP.count = 0
+PROD_2APP.count = 1
 
 PROD_ID = MSG()
 PROD_ID.data = 'HF92B0101;0;01;00\n'

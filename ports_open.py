@@ -67,11 +67,12 @@ class IdentifyPortThread(threading.Thread):
 					except:
 						if port not in self.inuse_ports:
 							print(f'port {port} is in use')
-						self.inuse_ports.add(port)
+							self.inuse_ports.add(port)
 						# close the port since the port may have been already assigned
 						try:
 							ser[port].close()
 						except:
+							print(f'faile to close port {port}')
 							pass
 
 						

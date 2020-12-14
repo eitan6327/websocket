@@ -58,7 +58,6 @@ async def find_serial():
 		if ser_valid == False:
 			ser_list = []
 			ser_list = fp.getValidSerials()
-
 			if len(ser_list):
 				ser = ser_list[0]
 				ser_valid = True
@@ -136,8 +135,20 @@ if __name__ == "__main__":
 
 
 	loop = asyncio.get_event_loop()
-	loop.run_until_complete(websockets.serve(main, local_ip, port))
-	loop.run_forever()
+	for i in range(3):
+		try:
+			loop.run_until_complete(websockets.serve(main, local_ip, port))
+			loop.run_forever()
+			print('Normal Exit')
+			break
+		except Exception as e:
+			print(str(e))
+			print('retry: ', i)
+			sleep(3)
+
+	print('Exiting....')
+
+	
 
 
 	
